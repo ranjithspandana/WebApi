@@ -1,10 +1,24 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using TestProject.WebAPI.Data;
+
 namespace TestProject.WebAPI.Helpers
 {
-    public class DataContext
+    public class DataContext : DbContext
     {
-        public DataContext()
+        protected readonly IConfiguration Configuration;
+
+        public DataContext(IConfiguration configuration)
         {
+            Configuration = configuration;
         }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        {
+            // connect to sql server database
+            options.UseSqlServer(Configuration.GetConnectionString("WebApiDatabase"));
+        }
+
+        public DbSet<User> Users { get; set; }
     }
 }

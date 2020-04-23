@@ -1,10 +1,16 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+
 namespace TestProject.WebAPI.Helpers
 {
-    public class SqlliteDataContext
+    public class SqliteDataContext : DataContext
     {
-        public SqlliteDataContext()
+        public SqliteDataContext(IConfiguration configuration) : base(configuration) { }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
+            // connect to sqlite database
+            options.UseSqlite(Configuration.GetConnectionString("WebApiDatabase"));
         }
     }
 }

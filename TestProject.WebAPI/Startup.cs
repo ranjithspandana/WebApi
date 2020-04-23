@@ -10,7 +10,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using TestProject.WebAPI.Data;
 using TestProject.WebAPI.Services;
-
+using AutoMapper;
+using System;
 
 namespace TestProject.WebAPI
 {
@@ -56,7 +57,12 @@ namespace TestProject.WebAPI
 
             services.AddDbContext<TestProjectContext>(options => options.UseLazyLoadingProxies().UseSqlite($"Data Source={DatabaseFileName}"));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddCors();
             services.AddControllers();
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            services.AddScoped<IUsersService, UsersService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

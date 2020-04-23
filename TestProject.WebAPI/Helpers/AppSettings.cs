@@ -3,8 +3,6 @@ namespace TestProject.WebAPI.Helpers
 {
     public class AppSettings
     {
-        public AppSettings()
-        {
-        }
+        public string Secret { get; set; }
     }
 }

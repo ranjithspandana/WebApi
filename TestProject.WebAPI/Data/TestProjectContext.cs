@@ -26,5 +26,6 @@ namespace TestProject.WebAPI.Data
         public string LastName { get; set; }
 
         public uint Age { get; set; }
+       
     }
 }
