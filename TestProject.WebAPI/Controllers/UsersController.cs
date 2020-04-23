@@ -105,13 +105,14 @@ namespace TestProject.WebAPI.Controllers
             return Ok(model);
         }
 
+        /*
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByFirstNames(string[] firstNames)
         {
             var user = await _userService.GetByFirstNames(firstNames);
             var model = _mapper.Map<UserModel>(user);
             return Ok(model);
-        }
+        }*/
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody]UpdateModel model)
