@@ -27,7 +27,7 @@ namespace TestProject.WebAPI.Services
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 return null;
 
-            var user =  _testProjectContext.Users.SingleOrDefault(x => x.FirstName == username);
+            var user = _testProjectContext.Users.SingleOrDefault(x => x.FirstName == username);
 
             // check if username exists
             if (user == null)
@@ -78,37 +78,13 @@ namespace TestProject.WebAPI.Services
         public async Task<IEnumerable<User>> GetAll()
         {
             return await _testProjectContext.Users.ToListAsync();
-        }
+        }       
 
-        public Task<User> GetUserById(int id)
+        public async Task<User> GetUserById(int id)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public async Task<bool> Update(User user, string password = null)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-                throw new AppException("Password is required");
-
-            if (_testProjectContext.Users.Any(x => x.Email == user.Email))
-                throw new AppException("Username \"" + user.Email + "\" is already taken");
-
-            #region Password Hashing
-
-            /* It's better to use the PassWord Hash for encrypting the password
-             * This is the sample code I added for Hashing/ Verifying the Password
-             * 
-            byte[] passwordHash, passwordSalt;
-            CreatePasswordHash(password, out passwordHash, out passwordSalt);
-
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
-            */
-            #endregion
-
-            _testProjectContext.Users.Add(user);
-            await _testProjectContext.SaveChangesAsync();
-            return true;
+            var user = await _testProjectContext.Users.FindAsync(id);
+            return user;
+            
         }
        
         public Task<IEnumerable<User>> AddRange(IEnumerable<User> users)
@@ -116,9 +92,54 @@ namespace TestProject.WebAPI.Services
             throw new System.NotImplementedException();
         }
 
-        public Task<User> Update(User user)
+        public Task<IEnumerable<User>> GetByFirstNames(string[] firstNames)
         {
+            //We can implement same as GetUser By ID just filter by firstNames
             throw new System.NotImplementedException();
+        }
+
+        public async Task<bool> Update(User userParam,string password)
+        {
+            var user = _testProjectContext.Users.Find(userParam.Id);
+
+            if (user == null)
+                throw new AppException("User not found");
+
+            // update username if it has changed
+            if (!string.IsNullOrWhiteSpace(userParam.Email) && userParam.Email != user.Email)
+            {
+                // throw error if the new username is already taken
+                if (_testProjectContext.Users.Any(x => x.Email == userParam.Email))
+                    throw new AppException("Username " + userParam.Email + " is already taken");
+
+                user.Email = userParam.Email;
+            }
+
+            // update user properties if provided
+            if (!string.IsNullOrWhiteSpace(userParam.FirstName))
+                user.FirstName = userParam.FirstName;
+
+            if (!string.IsNullOrWhiteSpace(userParam.LastName))
+                user.LastName = userParam.LastName;
+
+            user.Age = userParam.Age;
+
+            // update password if provided
+            if (!string.IsNullOrWhiteSpace(password))
+            {
+                user.Password = password;
+                //Hashing can be done  
+                /*byte[] passwordHash, passwordSalt;
+                CreatePasswordHash(password, out passwordHash, out passwordSalt);
+
+                user.PasswordHash = passwordHash;
+                user.PasswordSalt = passwordSalt;*/
+            }
+
+            _testProjectContext.Users.Update(user);
+            await _testProjectContext.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<bool> Delete(int id)
@@ -171,7 +192,7 @@ namespace TestProject.WebAPI.Services
     {
         User Authenticate(string username, string password);
 
-        Task<IEnumerable<User>> Get(Filters filters);
+        Task<IEnumerable<User>> GetByFirstNames(string[] firstNames);
 
         Task<User> Add(User user,string password);
 
