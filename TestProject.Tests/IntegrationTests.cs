@@ -41,7 +41,7 @@ namespace TestProject.Tests
             var createForm1 = GenerateCreateForm("Daniel", "Johnson", 19, "testemail2@mail.com", "12345678");
             var response1 = await Client.PostAsync("/api/users", new StringContent(JsonConvert.SerializeObject(createForm1), Encoding.UTF8, "application/json"));
 
-            var createForm2 = GenerateCreateForm("Daniel", "Olson", 19, "testemail2@mail.com", "12345678");
+            var createForm2 = GenerateCreateForm("Daniel", "Olson", 19, "testemail258@mail.com", "12345678");
             var response2 = await Client.PostAsync("/api/users", new StringContent(JsonConvert.SerializeObject(createForm2), Encoding.UTF8, "application/json"));
 
             var createForm3 = GenerateCreateForm("Olga", "Verso", 19, "testemail21s2@mail.com", "12345678");
@@ -119,7 +119,7 @@ namespace TestProject.Tests
             await SeedData();
 
             var response0 = await Client.DeleteAsync("/api/users/1");
-            response0.StatusCode.Should().BeEquivalentTo(StatusCodes.Status204NoContent);
+            response0.StatusCode.Should().BeEquivalentTo(StatusCodes.Status200OK);
 
             var response1 = await Client.GetAsync("/api/users/1");
             response1.StatusCode.Should().BeEquivalentTo(StatusCodes.Status404NotFound);
@@ -143,7 +143,7 @@ namespace TestProject.Tests
             };
 
             var response0 = await Client.PutAsync("/api/users/1", new StringContent(JsonConvert.SerializeObject(updateForm), Encoding.UTF8, "application/json"));
-            response0.StatusCode.Should().BeEquivalentTo(StatusCodes.Status204NoContent);
+            response0.StatusCode.Should().BeEquivalentTo(StatusCodes.Status200OK);
 
             var response1 = await Client.GetAsync("/api/users/1");
             response1.StatusCode.Should().BeEquivalentTo(StatusCodes.Status200OK);
@@ -162,7 +162,8 @@ namespace TestProject.Tests
             //Here data is exporting to the end point
             var myJsonString = File.ReadAllBytes("MOCK_DATA.json");
             var content = new ByteArrayContent(myJsonString);
-            var response0 = await Client.PostAsync("/api/users/import", content);
+            var response0 = await Client.PostAsync("/api/users/import",content);
+            
             response0.StatusCode.Should().BeEquivalentTo(StatusCodes.Status200OK);
 
             //Here expect to see all users from web api end point (1000).
@@ -230,7 +231,8 @@ namespace TestProject.Tests
                     }
                 });
 
-            _server = new TestServer(builder);
+ 
+                _server = new TestServer(builder);
 
             Client = _server.CreateClient();
         }

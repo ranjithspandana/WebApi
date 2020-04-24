@@ -27,7 +27,7 @@ namespace TestProject.WebAPI.Services
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 return null;
 
-            var user = _testProjectContext.Users.SingleOrDefault(x => x.FirstName == username);
+            var user = _testProjectContext.Users.SingleOrDefault(x => x.Email == username);
 
             // check if username exists
             if (user == null)
@@ -98,7 +98,7 @@ namespace TestProject.WebAPI.Services
             throw new System.NotImplementedException();
         }
 
-        public async Task<bool> Update(User userParam,string password)
+        public async Task<User> Update(User userParam,string password)
         {
             var user = _testProjectContext.Users.Find(userParam.Id);
 
@@ -123,6 +123,7 @@ namespace TestProject.WebAPI.Services
                 user.LastName = userParam.LastName;
 
             user.Age = userParam.Age;
+            user.Password = password;
 
             // update password if provided
             if (!string.IsNullOrWhiteSpace(password))
@@ -139,7 +140,7 @@ namespace TestProject.WebAPI.Services
             _testProjectContext.Users.Update(user);
             await _testProjectContext.SaveChangesAsync();
 
-            return true;
+            return user;
         }
 
         public async Task<bool> Delete(int id)
@@ -198,7 +199,7 @@ namespace TestProject.WebAPI.Services
 
         Task<IEnumerable<User>> AddRange(IEnumerable<User> users);
 
-        Task<bool> Update(User user,string password =null);        
+        Task<User> Update(User user,string password =null);        
 
         Task<bool> Delete(int id);
 

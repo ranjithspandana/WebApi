@@ -16,6 +16,7 @@ using AutoMapper;
 using TestProject.WebAPI.Helpers;
 using TestProject.WebAPI.Models;
 using System;
+using System.Net.Http;
 
 namespace TestProject.WebAPI.Controllers
 {
@@ -39,7 +40,7 @@ namespace TestProject.WebAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("authenticate")]
+        [HttpPost("/token")]
         public  IActionResult Authenticate([FromBody]LoginModel model)
         {
             var user = _userService.Authenticate(model.Email, model.Password);
@@ -48,7 +49,7 @@ namespace TestProject.WebAPI.Controllers
                 return BadRequest(new { message = "Email or password is incorrect" });
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var key = AuthOptions.GetSymmetricSecurityKey();
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
@@ -56,7 +57,7 @@ namespace TestProject.WebAPI.Controllers
                     new Claim(ClaimTypes.Name, user.Id.ToString())
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var tokenString = tokenHandler.WriteToken(token);
@@ -70,8 +71,16 @@ namespace TestProject.WebAPI.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("register")]
-        public IActionResult Register([FromBody]RegisterModel model)
+        [HttpGet("/curentuser")]
+        public  IActionResult IsAuthorized()
+        {
+
+            return BadRequest(new { message = "CurrentUser" });
+        }
+
+        [AllowAnonymous]
+        [HttpPost()]
+        public async Task<IActionResult> Register([FromBody]RegisterModel model)
         {
             // map model to entity
             var user = _mapper.Map<User>(model);
@@ -79,28 +88,49 @@ namespace TestProject.WebAPI.Controllers
             try
             {
                 // create user
-                _userService.Add(user, model.Password);
+                await _userService.Add(user, model.Password);
                 return Ok();
             }
             catch (AppException ex)
             {
                 // return error message if there was an exception
                 return BadRequest(new { message = ex.Message });
+
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetData([FromQuery]string[] firstNames=null)
+        {
+           
+            var users = await _userService.GetAll();
+            if (firstNames==null || firstNames.Length==0)
+            {
+                var model = _mapper.Map<IList<UserModel>>(users);
+                return Ok(model);
+            }
+            else
+            {
+                IEnumerable<User> filtered = users.Where(item =>
+                firstNames.Any(name => name.Equals(item.FirstName)));
+                var model = _mapper.Map<IList<UserModel>>(filtered);
+                return Ok(model);
+            }
+        }
+        /*
+        [HttpGet]
+        public async Task<IActionResult> GetData(List<string> firstNames=null)
         {
             var users = await _userService.GetAll();
             var model = _mapper.Map<IList<UserModel>>(users);
             return Ok(model);
-        }
+        }*/
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.GetUserById(id);
+            if (user == null) return NotFound();
             var model = _mapper.Map<UserModel>(user);
             return Ok(model);
         }
@@ -124,8 +154,8 @@ namespace TestProject.WebAPI.Controllers
             try
             {
                 // update user 
-                await _userService.Update(user, model.Password);
-                return Ok();
+                user = await _userService.Update(user, model.Password);
+                return Ok(user);
             }
             catch (AppException ex)
             {
@@ -134,11 +164,35 @@ namespace TestProject.WebAPI.Controllers
             }
         }
 
+        [AllowAnonymous]
+        [HttpPost("/import")]
+        public async Task<IActionResult> ImportData([FromBody]byte[] bytedata)
+        {
+            //var d = content.ToString();
+            /* Change the code to update the list of users */
+            var users = await _userService.GetAll();
+            try
+            {
+                // update user 
+                
+            }
+            catch (AppException ex)
+            {
+                // return error message if there was an exception
+                return NotFound();
+            }
+            return Ok();
+        }
+
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _userService.Delete(id);
-            return Ok();
+            if (result)
+                return Ok();
+            else
+                return NotFound();
         }
     }
 }

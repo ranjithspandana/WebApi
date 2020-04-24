@@ -12,6 +12,9 @@ namespace TestProject.WebAPI.Models
         public string LastName { get; set; }
 
         [Required]
+        public uint Age { get; set; }
+
+        [Required]
         public string Email { get; set; }
 
         [Required]
